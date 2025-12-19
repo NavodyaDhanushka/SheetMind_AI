@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>SheetMind AI</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        h1 { color: #333; }
+        #pdfResult a { display: block; margin-bottom: 5px; text-decoration: none; color: #1a73e8; }
+        #pdfResult a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <h1>Upload Excel and Generate PDFs</h1>
+
+    <form id="generateForm" enctype="multipart/form-data">
+        <label>Upload Excel:</label>
+        <input type="file" name="file" required><br><br>
+
+        <label>Prompt:</label>
+        <textarea name="prompt" rows="5" required></textarea><br><br>
+
+        <label>Model:</label>
+        <select name="model">
+            <option value="gpt-4o">GPT-4o</option>
+            <option value="gpt-4-turbo">GPT-4 Turbo</option>
+            <option value="gpt-3.5-turbo">GPT-3.5</option>
+        </select><br><br>
+
+        <button type="submit">Generate PDFs</button>
+    </form>
+
+    <h2>Generated PDFs:</h2>
+    <div id="pdfResult"></div>
+
+    <script>
+        const form = document.getElementById("generateForm");
+        const pdfResult = document.getElementById("pdfResult");
+
+        form.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const formData = new FormData(form);
+
+            try {
+                const response = await fetch("/generate", {
+                    method: "POST",
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    pdfResult.textContent = "Error generating PDFs!";
+                    return;
+                }
+
+                const data = await response.json();
+                pdfResult.innerHTML = ""; // clear previous results
+
+                // ZIP download link
+                const zipLink = document.createElement("a");
+                zipLink.href = data.zip;
+                zipLink.download = "generated_pdfs.zip";
+                zipLink.textContent = "Download All PDFs (ZIP)";
+                zipLink.style.fontSize = "18px";
+                zipLink.style.fontWeight = "bold";
+                pdfResult.appendChild(zipLink);
+
+                pdfResult.appendChild(document.createElement("br"));
+                pdfResult.appendChild(document.createElement("br"));
+
+                // List individual PDFs
+                const ul = document.createElement("ul");
+                data.pdfs.forEach(pdf => {
+                    const li = document.createElement("li");
+                    const link = document.createElement("a");
+                    link.href = pdf;
+                    link.textContent = pdf.split("/").pop();
+                    link.target = "_blank"; // open in new tab
+                    li.appendChild(link);
+                    ul.appendChild(li);
+                });
+                pdfResult.appendChild(ul);
+
+            } catch (err) {
+                console.error("Error:", err);
+                pdfResult.textContent = "Something went wrong!";
+            }
+        });
+    </script>
+</body>
+</html>
