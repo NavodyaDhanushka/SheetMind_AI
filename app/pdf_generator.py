@@ -1,15 +1,18 @@
 from fpdf import FPDF
 import os
 
-def generate_pdf(filename, content, output_dir):
-    os.makedirs(output_dir, exist_ok=True)
-    pdf_path = os.path.join(output_dir, f"{filename}.pdf")
-
+def generate_pdf(username, content, output_dir):
     pdf = FPDF()
     pdf.add_page()
-    pdf.set_auto_page_break(auto=True, margin=15)
-    pdf.set_font("Arial", size=12)
+
+    font_path = os.path.join("app", "fonts", "DejaVuSans.ttf")
+
+    pdf.add_font("DejaVu", "", font_path, uni=True)
+    pdf.set_font("DejaVu", size=12)
+
     pdf.multi_cell(0, 8, content)
 
+    pdf_path = os.path.join(output_dir, f"{username}.pdf")
     pdf.output(pdf_path)
+
     return pdf_path
